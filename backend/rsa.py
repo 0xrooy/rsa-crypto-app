@@ -1,31 +1,21 @@
-import random
+from Crypto.PublicKey import RSA
+from Crypto.Cipher import PKCS1_OAEP
+import base64
 
-def gcd(a, b):
-    while b:
-        a, b = b, a % b
-    return a
+def generate_keys(bits=2048):
+    key = RSA.generate(bits)
+    private_key = key.export_key().decode()
+    public_key = key.publickey().export_key().decode()
+    return public_key, private_key
 
-def modinv(a, m):
-    for x in range(1, m):
-        if (a * x) % m == 1:
-            return x
-    raise Exception('Modular inverse does not exist')
+def encrypt_text(public_key_str, plaintext):
+    key = RSA.import_key(public_key_str)
+    cipher = PKCS1_OAEP.new(key)
+    ciphertext = cipher.encrypt(plaintext.encode())
+    return base64.b64encode(ciphertext).decode()
 
-def generate_keypair(p, q):
-    n = p * q
-    phi = (p-1)*(q-1)
-
-    e = random.randrange(2, phi)
-    while gcd(e, phi) != 1:
-        e = random.randrange(2, phi)
-
-    d = modinv(e, phi)
-    return ((e, n), (d, n))
-
-def encrypt(pk, plaintext):
-    key, n = pk
-    return [pow(ord(char), key, n) for char in plaintext]
-
-def decrypt(pk, ciphertext):
-    key, n = pk
-    return ''.join([chr(pow(char, key, n)) for char in ciphertext])
+def decrypt_text(private_key_str, ciphertext_b64):
+    key = RSA.import_key(private_key_str)
+    cipher = PKCS1_OAEP.new(key)
+    ciphertext = base64.b64decode(ciphertext_b64)
+    return cipher.decrypt(ciphertext).decode()

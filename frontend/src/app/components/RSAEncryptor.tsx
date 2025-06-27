@@ -4,13 +4,18 @@ import axios from "axios"
 
 export default function RSAEncryptor() {
   const [text, setText] = useState("")
-  const [cipher, setCipher] = useState<any[]>([])
+  const [cipher, setCipher] = useState("")
   const [decrypted, setDecrypted] = useState("")
+  const [privateKey, setPrivateKey] = useState("")
+  const [publicKey, setPublicKey] = useState("")
 
   async function handleEncrypt() {
     try {
       const res = await axios.post("http://localhost:8000/encrypt", { text })
+
       setCipher(res.data.cipher)
+      setPrivateKey(res.data.private)
+      setPublicKey(res.data.public)
 
       const decryptedRes = await axios.post("http://localhost:8000/decrypt", {
         private: res.data.private,
@@ -38,9 +43,15 @@ export default function RSAEncryptor() {
       >
         Encrypt + Decrypt
       </button>
-      <div>
-        <p><strong>Cipher:</strong> {JSON.stringify(cipher)}</p>
+      <div className="space-y-2">
+        <p><strong>Cipher:</strong> {cipher}</p>
         <p><strong>Decrypted:</strong> {decrypted}</p>
+        <pre className="break-words whitespace-pre-wrap">
+          <strong>Private Key:</strong>{'\n'}{privateKey}
+        </pre>
+        <pre className="break-words whitespace-pre-wrap">
+          <strong>Public Key:</strong>{'\n'}{publicKey}
+        </pre>
       </div>
     </div>
   )
